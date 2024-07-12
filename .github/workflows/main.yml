@@ -30,7 +30,7 @@ jobs:
         run: |
           git clone https://github.com/madler/zlib.git
           cd zlib
-          git checkout $ZLIB_VERSION
+          git checkout v$ZLIB_VERSION
       - name: Configure cmake
         run: |
           mkdir build && cd build
