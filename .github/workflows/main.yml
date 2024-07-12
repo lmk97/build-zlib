@@ -1,8 +1,5 @@
 name: Publish zlib include and static library
-on:
-  release:
-    types:
-      - published
+on: [push]
 
 env:
   ZLIB_VERSION: "1.3.1"
@@ -31,15 +28,17 @@ jobs:
           git clone https://github.com/madler/zlib.git
           cd zlib
           git checkout v$ZLIB_VERSION
-      - name: Configure cmake
-        run: |
-          mkdir build && cd build
-          cmake ..
       - name: Build static library
         run: |
+          cd $GITHUB_WORKSPACE/zlib
+          mkdir build
+          cd build
+          cmake ..
+          cd ..
           make -C build
       - name: Compress include and static library
         run: |
+          cd $GITHUB_WORKSPACE/zlib/build
           tar -zcvf zlib-include.tar.gz zlib.h zconf.h
           gzip -9 -c libz.a > zlib-lib-${{ matrix.platform }}-unknown-linux-gnu.gz
       - name: Upload include
