@@ -39,6 +39,7 @@ jobs:
       - name: Compress include and static library
         run: |
           cd $GITHUB_WORKSPACE/zlib/build
+          ls
           tar -zcvf zlib-include.tar.gz zlib.h zconf.h
           gzip -9 -c libz.a > zlib-lib-${{ matrix.platform }}-unknown-linux-gnu.gz
       - name: Upload include
