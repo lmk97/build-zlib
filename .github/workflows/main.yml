@@ -38,8 +38,7 @@ jobs:
       - name: Compress static library
         run: |
           cd $GITHUB_WORKSPACE/zlib/build/Release
-          7z -a -tgzip -mx=9 zlib-lib-${{ matrix.platform }}-pc-windows-msvc.gz zlib.lib
-#          gzip -9 -c zlib.lib > zlib-lib-${{ matrix.platform }}-pc-windows-msvc.gz
+          7z a -tgzip -mx=9 zlib-lib-${{ matrix.platform }}-pc-windows-msvc.gz zlib.lib
       - name: Upload static library
         uses: actions/upload-release-asset@v1
         env:
