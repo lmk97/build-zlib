@@ -1,4 +1,4 @@
-name: Publish zlib include and static library
+name: Publish zlib include files and static library
 on: [push]
 
 env:
@@ -15,14 +15,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        platform: [x86_64]
+        platform: [x86_64, aarch64]
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-      - name: Install build tools
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y build-essential cmake
       - name: Fetch zlib code
         run: |
           git clone https://github.com/madler/zlib.git
@@ -32,23 +28,21 @@ jobs:
         run: |
           cd $GITHUB_WORKSPACE/zlib
           mkdir build
-          cd build
-          cmake ..
-          cd ..
-          make -C build
-      - name: Compress include and static library
+          ./configure --prefix=$GITHUB_WORKSPACE/zlib/build --warn
+          make -j2
+          make install
+      - name: Compress include files and static library
         run: |
           cd $GITHUB_WORKSPACE/zlib/build
-          ls
-          tar -zcvf zlib-include.tar.gz zlib.h zconf.h
-          gzip -9 -c libz.a > zlib-lib-${{ matrix.platform }}-unknown-linux-gnu.gz
-      - name: Upload include
+          tar -zcvf zlib-include.tar.gz -C include .
+          gzip -9 -c lib/libz.a > zlib-lib-${{ matrix.platform }}-unknown-linux-gnu.gz
+      - name: Upload include files
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ github.token }}
         with:
           upload_url: ${{ github.event.release.upload_url }}
-          asset_path: zlib-include.tar.gz
+          asset_path: ${{ github.workspace }}/zlib/build/zlib-include.tar.gz
           asset_name: zlib-include.tar.gz
           asset_content_type: application/gzip
       - name: Upload static library
@@ -57,6 +51,76 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
         with:
           upload_url: ${{ github.event.release.upload_url }}
-          asset_path: zlib-lib-${{ matrix.platform }}-unknown-linux-gnu.gz
+          asset_path: ${{ github.workspace }}/zlib/build/zlib-lib-${{ matrix.platform }}-unknown-linux-gnu.gz
           asset_name: zlib-lib-${{ matrix.platform }}-unknown-linux-gnu.gz
+          asset_content_type: application/gzip
+
+  build-macos:
+    name: macos
+    runs-on: macos-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        platform: [x86_64, aarch64]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Fetch zlib code
+        run: |
+          git clone https://github.com/madler/zlib.git
+          cd zlib
+          git checkout v$ZLIB_VERSION
+      - name: Build static library
+        run: |
+          cd $GITHUB_WORKSPACE/zlib
+          mkdir build
+          ./configure --prefix=$GITHUB_WORKSPACE/zlib/build --warn
+          make -j2
+          make install
+      - name: Compress static library
+        run: |
+          cd $GITHUB_WORKSPACE/zlib/build
+          gzip -9 -c lib/libz.a > zlib-lib-${{ matrix.platform }}-apple-darwin.gz
+      - name: Upload static library
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_path: ${{ github.workspace }}/zlib/build/zlib-lib-${{ matrix.platform }}-apple-darwin.gz
+          asset_name: zlib-lib-${{ matrix.platform }}-apple-darwin.gz
+          asset_content_type: application/gzip
+
+  build-windows:
+    name: windows
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        platform: [x86_64]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Fetch zlib code
+        run: |
+          git clone https://github.com/madler/zlib.git
+          cd zlib
+          git checkout v$ZLIB_VERSION
+      - name: Build static library
+        run: |
+          cd $GITHUB_WORKSPACE/zlib
+          cmake -S. -B build -A x64 -D CMAKE_BUILD_TYPE=Release
+          cmake --build build
+      - name: Compress static library
+        run: |
+          cd $GITHUB_WORKSPACE/zlib/build
+          gzip -9 -c libz.a > zlib-lib-${{ matrix.platform }}-pc-windows-msvc.gz
+      - name: Upload static library
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_path: ${{ github.workspace }}/zlib/build/zlib-lib-${{ matrix.platform }}-pc-windows-msvc.gz
+          asset_name: zlib-lib-${{ matrix.platform }}-pc-windows-msvc.gz
           asset_content_type: application/gzip
