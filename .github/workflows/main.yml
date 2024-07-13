@@ -1,8 +1,8 @@
 name: Publish zlib include files and static library
-on: [push]
-#  release:
-#    types:
-#      - published
+on:
+  release:
+    types:
+      - published
 
 env:
   ZLIB_VERSION: "1.3.1"
