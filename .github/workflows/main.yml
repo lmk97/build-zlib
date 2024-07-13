@@ -112,11 +112,12 @@ jobs:
       - name: Build static library
         run: |
           cd $GITHUB_WORKSPACE/zlib
-          cmake -S. -B build -A x64 -D CMAKE_BUILD_TYPE=Release
+          cmake -S. -B build -A x64 --config Release
           cmake --build build
       - name: Compress static library
         run: |
-          cd $GITHUB_WORKSPACE/zlib/build
+          cd $GITHUB_WORKSPACE/zlib/build/Release
+          mv zlibstaticd.lib zlib.lib
           gzip -9 -c zlib.lib > zlib-lib-${{ matrix.platform }}-pc-windows-msvc.gz
       - name: Upload static library
         uses: actions/upload-release-asset@v1
