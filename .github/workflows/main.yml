@@ -23,6 +23,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+      - name: Setup 7-zip
+        uses: milliewalky/setup-7-zip@v1
       - name: Fetch zlib code
         run: |
           git clone https://github.com/madler/zlib.git
@@ -34,7 +36,6 @@ jobs:
           cmake -S. -B build -D CMAKE_CONFIGURATION_TYPES="Release"
           cmake --build build --config Release
       - name: Compress static library
-        uses: milliewalky/setup-7-zip@v1
         run: |
           cd $GITHUB_WORKSPACE/zlib/build/Release
           7z -a -tgzip -mx=9 zlib-lib-${{ matrix.platform }}-pc-windows-msvc.gz zlib.lib
